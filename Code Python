@@ -1,0 +1,149 @@
+# smart_spending_game.py
+
+import random
+
+class User:
+    def __init__(self, name, age_group):
+        self.name = name
+        self.age_group = age_group  # 'student', 'college', 'parent'
+        self.shards = 0
+        self.expenses = []
+        self.level = 1
+
+    def add_expense(self, amount, category):
+        self.expenses.append({'amount': amount, 'category': category})
+
+    def earn_shards(self, amount):
+        self.shards += amount
+
+    def spend_shards(self, amount):
+        if self.shards >= amount:
+            self.shards -= amount
+            return True
+        return False
+
+    def get_expense_summary(self):
+        summary = {}
+        for e in self.expenses:
+            summary[e['category']] = summary.get(e['category'], 0) + e['amount']
+        return summary
+
+class Situation:
+    def __init__(self, description, options, correct_option, difficulty):
+        self.description = description
+        self.options = options
+        self.correct_option = correct_option
+        self.difficulty = difficulty
+
+    def present(self):
+        print(f"\nSituation: {self.description}")
+        for idx, opt in enumerate(self.options):
+            print(f"{idx+1}. {opt}")
+
+    def check_answer(self, user_choice):
+        return user_choice == self.correct_option
+
+def generate_situations(level, age_group):
+    # Example situations, can be expanded or loaded from a database
+    situations = [
+        Situation(
+            "You have 50,000 VND for lunch at school. Do you:\n"
+            "A. Buy a fancy drink and snack\n"
+            "B. Buy a balanced meal\n"
+            "C. Save half for tomorrow",
+            ["A", "B", "C"], "B", 1
+        ),
+        Situation(
+            "Your friends invite you to a movie after school. Ticket is 70,000 VND, you have 100,000 VND. Do you:\n"
+            "A. Go and spend all\n"
+            "B. Suggest a cheaper activity\n"
+            "C. Save money for next week",
+            ["A", "B", "C"], "B", 2
+        ),
+        # Add more situations per level/age_group
+    ]
+    return random.sample(situations, k=1)
+
+def instructions():
+    print("""
+Welcome to Smart Spending!
+We use the '6 Jars' method for budgeting:
+1. Necessities (55%)
+2. Education (10%)
+3. Savings (10%)
+4. Play (10%)
+5. Investment (10%)
+6. Charity (5%)
+Let's practice with real-life situations!
+""")
+
+def practice(user):
+    print("\n--- PRACTICE MODE ---")
+    for _ in range(3):
+        situation = generate_situations(user.level, user.age_group)[0]
+        situation.present()
+        choice = input("Choose your answer (A/B/C): ").strip().upper()
+        if situation.check_answer(choice):
+            print("Correct! You earn shards.")
+            user.earn_shards(3 * situation.difficulty)
+        else:
+            print("Not optimal. Try to think about your spending!")
+    user.level += 1
+    print(f"Level up! You are now level {user.level}. Shards: {user.shards}")
+
+def apply(user):
+    print("\n--- APPLY MODE ---")
+    if not user.spend_shards(5):
+        print("Not enough shards! Complete more PRACTICE situations.")
+        return
+    amount = int(input("Enter the amount you want to spend: "))
+    item = input("What do you want to buy? ")
+    # Simple AI suggestion logic
+    if amount > 50000:
+        print(f"Consider: Is {item} a necessity? Can you find a cheaper alternative?")
+    else:
+        print(f"Good choice! Remember to track your spending.")
+    user.add_expense(amount, item)
+
+def analyze_expenses(user):
+    print("\n--- EXPENSE ANALYSIS ---")
+    summary = user.get_expense_summary()
+    total = sum(summary.values())
+    print(f"Total spent: {total} VND")
+    for cat, amt in summary.items():
+        print(f"{cat}: {amt} VND")
+    # Simple AI feedback
+    if total > 300000:
+        print("You are spending a lot! Try to save more next week.")
+    else:
+        print("Your spending is reasonable. Keep it up!")
+
+def main():
+    print("Welcome to Community: Smart Spending, Strong Future!")
+    name = input("Enter your name: ")
+    age_group = input("Your age group (student/college/parent): ").strip().lower()
+    user = User(name, age_group)
+    while True:
+        print("\nHOME MENU")
+        print("1. INSTRUCTIONS")
+        print("2. PRACTICE")
+        print("3. APPLY")
+        print("4. ANALYZE EXPENSES")
+        print("5. EXIT")
+        choice = input("Choose an option: ").strip()
+        if choice == "1":
+            instructions()
+        elif choice == "2":
+            practice(user)
+        elif choice == "3":
+            apply(user)
+        elif choice == "4":
+            analyze_expenses(user)
+        elif choice == "5":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid option.")
+
+if __name__ == "__main__":
+    main()
