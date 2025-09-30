@@ -61,7 +61,5 @@ int main() {
             }
         }
     }
-
-    cout << "\nCảm ơn bạn đã tham gia!" << endl;
     return 0;
 }
